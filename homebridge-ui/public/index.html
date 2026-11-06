@@ -40,15 +40,16 @@
         <div class="card my-2" id="searching">Searching for processors...</div>
     </div>
     <div id="resources" class="card-body my-3 w-75 mx-auto" style="display: none;">
-        <h4 class="card-title">Scenes &amp; Switches</h4>
+        <h4 class="card-title">Scenes, Switches &amp; Keypads</h4>
         <p class="text-muted small">
-            Pick which of your actual Lutron Virtual Buttons (scenes) and zones (switches/dimmers)
-            to expose here. Nothing is exposed unless checked. For zones, disable that zone's
+            Pick which of your actual Lutron Virtual Buttons (scenes), zones (switches/dimmers)
+            and keypads to expose. Nothing is exposed unless checked. For zones, disable that zone's
             native Apple HomeKit export in the Lutron app before checking it here, or it'll show
             up twice.
         </p>
         <div id="virtualButtonsList"></div>
         <div id="zonesList"></div>
+        <div id="keypadsList"></div>
     </div>
 </div>
 
@@ -75,6 +76,9 @@
         }
         if (pluginConfig[0].options.zones === undefined) {
             pluginConfig[0].options.zones = [];
+        }
+        if (pluginConfig[0].options.keypads === undefined) {
+            pluginConfig[0].options.keypads = [];
         }
         return pluginConfig;
     }
@@ -235,6 +239,7 @@
 
     let allVirtualButtons = [];
     let allZones = [];
+    let allKeypads = [];
     const resourcesLoadedFor = new Set();
 
     async function loadResources(processor, secrets) {
@@ -248,6 +253,7 @@
                 processorID: processor.processorID,
                 ipAddress: processor.ipAddress,
             });
+
             for (const vb of result.virtualButtons) {
                 if (!allVirtualButtons.some((x) => x.name === vb.name)) {
                     allVirtualButtons.push(vb);
@@ -258,10 +264,15 @@
                     allZones.push(z);
                 }
             }
+            for (const kp of result.keypads) {
+                if (!allKeypads.some((x) => x.name === kp.name && x.area === kp.area)) {
+                    allKeypads.push(kp);
+                }
+            }
             await renderResources();
         } catch (e) {
             console.log('failed to browse processor', processor.processorID, e);
-            homebridge.toast.error('Could not load scenes/zones from ' + processor.processorID);
+            homebridge.toast.error('Could not load scenes/zones/keypads from ' + processor.processorID);
         }
     }
 
@@ -281,7 +292,7 @@
 
     async function renderResources() {
         document.getElementById('resources').style.display =
-            allVirtualButtons.length || allZones.length ? '' : 'none';
+            allVirtualButtons.length || allZones.length || allKeypads.length ? '' : 'none';
 
         const vbContainer = document.getElementById('virtualButtonsList');
         vbContainer.innerHTML =
@@ -317,6 +328,13 @@
             }
             zoneContainer.innerHTML = html;
         }
+
+        const keypadContainer = document.getElementById('keypadsList');
+        keypadContainer.innerHTML =
+            allKeypads.length === 0
+                ? ''
+                : '<h6 class="mt-3">Keypads</h6>' +
+                  allKeypads.map((kp) => renderCheckRow('keypad', kp.name, `${kp.name}`, 'keypads')).join('');
 
         await attachCheckHandlers();
     }
