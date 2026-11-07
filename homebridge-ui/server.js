@@ -93,7 +93,38 @@ class PluginUiServer extends HomebridgePluginUiServer {
                 console.log('failed to get virtual buttons', e.message);
             }
 
-            return { zones, virtualButtons };
+            const keypadDeviceTypes = ['SeeTouchKeypad', 'SeeTouchHybridKeypad', 'SunnataKeypad', 'SunnataHybridKeypad'];
+            const keypads = [];
+            for (const area of areas) {
+                if (!area.IsLeaf) {
+                    continue;
+                }
+
+                try {
+                    const controlStations = await processor.getAreaControlStations(area);
+                    for (const controlStation of controlStations) {
+                        if (controlStation.AssociatedGangedDevices === undefined) {
+                            continue;
+                        }
+
+                        for (const gangedDevice of controlStation.AssociatedGangedDevices) {
+                            const device = gangedDevice.Device;
+                            if (device.AddressedState === 'Addressed' && keypadDeviceTypes.includes(device.DeviceType)) {
+                                const keypadDevice = await processor.getDevice(device);
+                                // fullyQualifiedName must match exactly how platform.ts constructs the name for keypads
+                                const fullyQualifiedName = (area.Name + ' ' + controlStation.Name + ' ' + keypadDevice.Name).trim();
+                                keypads.push({ name: fullyQualifiedName, area: area.Name });
+                            }
+                        }
+                    }
+                } catch (e) {
+                    this.log.error('Failed to retrieve keypads for area', area.href, e.message);
+                    continue;
+                }
+            }
+            console.log('browse: resolved', keypads.length, 'keypads total');
+
+            return { zones, virtualButtons, keypads };
         } catch (e) {
             console.log('browse failed', processorID, ipAddress, e);
             throw new RequestError('Failed to browse processor', { message: e.message });

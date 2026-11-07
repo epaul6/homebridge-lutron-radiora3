@@ -20,7 +20,7 @@ import { API, APIEvent, DynamicPlatformPlugin, Logging, PlatformAccessory, Platf
 import TypedEmitter from 'typed-emitter';
 
 import { PLUGIN_NAME, PLATFORM_NAME } from './settings';
-import { SunnataKeypad } from './SunnataKeypad';
+import { KeypadAccessory } from './KeypadAccessory';
 import { PicoRemote } from './PicoRemote';
 import { VirtualButtonScene } from './VirtualButtonScene';
 import { ZoneAccessory } from './ZoneAccessory';
@@ -36,6 +36,7 @@ export interface GlobalOptions {
     clickSpeedDouble: 'quick' | 'default' | 'relaxed' | 'disabled';
     virtualButtons: string[];
     zones: string[];
+    keypads: string[];
 }
 
 interface ProcessorAuthEntry {
@@ -111,7 +112,7 @@ export class LutronRadioRA3Platform
             this.finder.beginSearching();
         });
 
-        log.info('LutronCasetaLeap plugin finished early initialization');
+        log.info('Lutron RadioRA 3 plugin finished early initialization');
     }
 
     optionsFromConfig(config: PlatformConfig): GlobalOptions {
@@ -409,7 +410,7 @@ export class LutronRadioRA3Platform
         device: DeviceDefinition,
     ): Promise<string> {
         const uuid = this.api.hap.uuid.generate(device.SerialNumber.toString());
-        const fullyQualifiedName = Array.from(new Set([area.Name, controlStation.Name, device.Name])).join(' ');
+        const fullyQualifiedName = (area.Name + ' ' + controlStation.Name + ' ' + device.Name).trim();
 
         let accessory: PlatformAccessory | undefined = this.accessories.get(uuid);
         let isFromCache = true;
@@ -458,12 +459,21 @@ export class LutronRadioRA3Platform
         accessory.displayName = fullyQualifiedName;
 
         switch (device.DeviceType) {
-            // supported Sunnata keypads
+            // supported keypads
             case 'SunnataKeypad':
-            case 'SunnataHybridKeypad': {
-                this.log.info(`Found a ${device.DeviceType}: ${fullyQualifiedName}`);
-                const keypad = new SunnataKeypad(this, accessory, processor, this.options);
-                return keypad.initialize();
+            case 'SunnataHybridKeypad':
+            case 'SeeTouchKeypad':
+            case 'SeeTouchHybridKeypad': {
+                if (this.options?.keypads.includes(fullyQualifiedName)) {
+                    this.log.info(`Found a ${device.DeviceType}: ${fullyQualifiedName}`);
+                    const keypad = new KeypadAccessory(this, accessory, processor, this.options);
+                    return keypad.initialize();
+                } else {
+                    return {
+                        kind: DeviceWireResultType.Skipped,
+                        reason: `Device ${fullyQualifiedName} was not selected in options`
+                    };
+                }
             }
 
             // supported Pico remotes
