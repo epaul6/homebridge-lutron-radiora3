@@ -43,7 +43,8 @@ in Homebridge UI's plugin search under its own identity and can never be confuse
 silently overwritten by, the original via "Update".
 
 Supports:
-* Sunnata Keypads / Sunnata Hybrid Keypads → HomeKit Stateless Programmable Switches (single/double/long press per button)
+* Sunnata/Sunnata Hybrid/seeTouch/seeTouch Hybrid Keypads → HomeKit Stateless Programmable Switches
+  (single/double/long press per button)
 * Pico remotes (untested on real hardware beyond basic cases)
 * RA3 Virtual Buttons (scenes) → HomeKit momentary switches, opt-in (see below)
 * Direct switch/dimmer (zone) control → HomeKit Switch/Lightbulb, opt-in, bypassing RA3's
@@ -119,9 +120,9 @@ Pairing/config happens through the plugin's custom Homebridge UI settings screen
 Multiple processors are supported — just repeat pairing for each; each gets its own `secrets` entry.
 
 Once a processor is paired/connected, the same settings screen fetches its actual Virtual
-Buttons and zones live and shows them as checkboxes (grouped by room for zones) — check the
-ones you want, no need to type exact names. This is what feeds `options.virtualButtons` and
-`options.zones`, described below.
+Buttons, zones and keypads live and shows them as checkboxes (grouped by room for zones) — check
+the ones you want, no need to type exact names. This is what feeds `options.virtualButtons`,
+`options.zones`, and `options.keypads` described below.
 
 ## Scenes (Virtual Buttons) — fast, multi-device HomeKit "buttons"
 

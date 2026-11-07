@@ -43,8 +43,15 @@
               "type": "string",
               "title": "Zone name (must match the name in the Lutron app exactly)"
             }
+          },
+          "keypads": {
+            "type": "array",
+            "title": "Keypads to expose to HomeKit",
+            "items": {
+              "type": "string",
+              "title": "Keypad name"
+            }
           }
-
         }
       },
       "secrets": {
@@ -90,6 +97,13 @@
           "key": "options.zones",
           "notitle": false,
           "title": "Zones to control directly (disable RA3's native HomeKit export for these first)",
+          "type": "array",
+          "flex": "1 1 300px"
+        },
+        {
+          "key": "options.keypads",
+          "notitle": false,
+          "title": "Keypads to expose",
           "type": "array",
           "flex": "1 1 300px"
         }

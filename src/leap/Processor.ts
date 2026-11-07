@@ -69,7 +69,7 @@ export class Processor extends (EventEmitter as new () => TypedEmitter<Processor
         this.client.on('disconnected', this.handleDisconnect.bind(this));
         // Make a new connection with the processor, retry to make sure we get connected to it
         // A freshly booted processor will refuses the connection for several seconds
-        await retry(
+        await retry.default(
             async () => {
                 logDebug('Connecting ...');
                 await this.client.connect();
@@ -214,6 +214,13 @@ export class Processor extends (EventEmitter as new () => TypedEmitter<Processor
             return body.VirtualButtons;
         }
         return [];
+    }
+
+    public async pressButton(button: ButtonDefinition): Promise<void> {
+        logDebug('pressing button:', button.href);
+        await this.client.request('CreateRequest', button.href + '/commandprocessor', {
+            Command: { CommandType: 'PressAndRelease' },
+        });
     }
 
     public async pressVirtualButton(virtualButton: VirtualButtonDefinition): Promise<void> {
