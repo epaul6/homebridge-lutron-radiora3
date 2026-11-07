@@ -112,7 +112,7 @@ export class LutronRadioRA3Platform
             this.finder.beginSearching();
         });
 
-        log.info('LutronCasetaLeap plugin finished early initialization');
+        log.info('Lutron RadioRA 3 plugin finished early initialization');
     }
 
     optionsFromConfig(config: PlatformConfig): GlobalOptions {
